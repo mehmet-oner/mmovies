@@ -21,6 +21,7 @@ export default function MoviesClient({ initial }: { initial: Movie[] }) {
   const [index, setIndex] = useState(0);
   const [liked, setLiked] = useState<string[]>([]);
   const [disliked, setDisliked] = useState<string[]>([]);
+  const [openDesc, setOpenDesc] = useState<null | { title: string; description: string }>(null);
   const [swipeTrigger, setSwipeTrigger] = useState<SwipeTrigger>({
     count: 0,
     direction: "right",
@@ -109,6 +110,7 @@ export default function MoviesClient({ initial }: { initial: Movie[] }) {
             cardIndex={index}
             onDecision={(likedIt) => onSwipe(likedIt)}
             trigger={swipeTrigger}
+            onShowDescription={(title, description) => setOpenDesc({ title, description })}
           />
         )}
       </div>
@@ -127,6 +129,13 @@ export default function MoviesClient({ initial }: { initial: Movie[] }) {
           yeah
         </button>
       </div>
+      {openDesc && (
+        <DescriptionModal
+          title={openDesc.title}
+          description={openDesc.description}
+          onClose={() => setOpenDesc(null)}
+        />
+      )}
     </div>
   );
 }
@@ -136,11 +145,13 @@ function MovieSwipeCard({
   cardIndex,
   onDecision,
   trigger,
+  onShowDescription,
 }: {
   movie: Movie;
   cardIndex: number;
   onDecision: (likedIt: boolean) => void;
   trigger: SwipeTrigger;
+  onShowDescription: (title: string, description: string) => void;
 }) {
   const [dx, setDx] = useState(0);
   const [isDragging, setDragging] = useState(false);
@@ -216,7 +227,11 @@ function MovieSwipeCard({
         className="h-full w-full transition-transform duration-300 ease-out"
         style={leaving ? leavingStyle : style}
       >
-        <MovieCardBase movie={movie} overlays={{ like: showLike, nope: showNope }} />
+        <MovieCardBase
+          movie={movie}
+          overlays={{ like: showLike, nope: showNope }}
+          onShowDescription={() => onShowDescription(movie.title, movie.description)}
+        />
       </div>
     </div>
   );
@@ -227,11 +242,13 @@ function MovieCardBase({
   overlays,
   subdued,
   priority,
+  onShowDescription,
 }: {
   movie: Movie;
   overlays?: { like: boolean; nope: boolean };
   subdued?: boolean;
   priority?: boolean;
+  onShowDescription?: () => void;
 }) {
   const showLike = overlays?.like ?? false;
   const showNope = overlays?.nope ?? false;
@@ -271,7 +288,7 @@ function MovieCardBase({
       </div>
 
       {/* Bottom info area */}
-      <div className="h-[35%] p-4 flex flex-col justify-between bg-background">
+      <div className="h-[35%] p-4 flex flex-col bg-background">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold tracking-tight">{movie.title}</h2>
@@ -279,7 +296,72 @@ function MovieCardBase({
           </div>
           <span className="text-xs rounded-full border border-foreground/15 px-2 py-1 text-foreground/70">{movie.whereToWatch}</span>
         </div>
-        <p className="text-sm text-foreground/80 line-clamp-4">{movie.description}</p>
+        <div className="mt-auto">
+          <p className="text-sm text-foreground/80 line-clamp-4">{movie.description}</p>
+          <div className="mt-2 flex justify-end">
+            <button
+              type="button"
+              className={[
+                "text-xs underline",
+                onShowDescription ? "text-foreground/70 hover:text-foreground" : "invisible pointer-events-none",
+              ].join(" ")}
+              onClick={(e) => {
+                e.stopPropagation();
+                onShowDescription?.();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              more
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DescriptionModal({
+  title,
+  description,
+  onClose,
+}: {
+  title: string;
+  description: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="desc-modal-title"
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-background border border-foreground/15 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-4 border-b border-foreground/10 flex items-center justify-between">
+          <h2 id="desc-modal-title" className="text-lg font-semibold tracking-tight">{title}</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-foreground/5"
+            aria-label="Close"
+          >
+            Close
+          </button>
+        </div>
+        <div className="p-4 max-h-[60vh] overflow-y-auto text-sm text-foreground/80 whitespace-pre-line">
+          {description}
+        </div>
       </div>
     </div>
   );
