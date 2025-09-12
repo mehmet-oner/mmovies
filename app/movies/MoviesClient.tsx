@@ -45,7 +45,6 @@ export default function MoviesClient({ initial }: { initial: Movie[] }) {
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">Your summary</h1>
-          <p className="text-foreground/70">You swiped through {MOVIES.length} movies.</p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
@@ -76,8 +75,6 @@ export default function MoviesClient({ initial }: { initial: Movie[] }) {
           </button>
           <Link href="/" className="text-sm text-foreground/70 hover:text-foreground">Go home</Link>
         </div>
-
-        <div className="mt-8 text-sm text-foreground/60">Disliked: {dislikedMovies.length}</div>
       </div>
     );
   }
