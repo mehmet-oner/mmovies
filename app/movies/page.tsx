@@ -1,4 +1,5 @@
 import MoviesClient, { type Movie } from "./MoviesClient";
+import { PROVIDER_IDS, type ProviderKey } from "../lib/providers";
 
 type TMDBMovie = {
   id: number;
@@ -10,20 +11,26 @@ type TMDBMovie = {
   vote_average?: number;
 };
 
-async function fetchRandomMovies(): Promise<Movie[]> {
+async function fetchRandomMovies(providerKeys: ProviderKey[] = []): Promise<Movie[]> {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) throw new Error("TMDB_API_KEY is missing");
 
   const region = "US";
+  const providerIds = providerKeys
+    .map((k) => PROVIDER_IDS[k])
+    .filter((n): n is number => typeof n === "number");
   const rnd = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
   const pageA = rnd(1, 200);
   const pageB = rnd(1, 200);
 
   const baseUrl = "https://api.themoviedb.org/3";
 
-  // Prefer v3 with the API key as query, but to keep the key server-side we use headers.
+  // Build discover URL with optional provider filter (OR semantics with "|")
   const discover = async (page: number): Promise<TMDBMovie[]> => {
-    const url = `${baseUrl}/discover/movie?api_key=${apiKey}&include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc&page=${page}&&watch_region=Netherlands`;
+    const withProviders = providerIds.length
+      ? `&with_watch_providers=${encodeURIComponent(providerIds.join("|"))}`
+      : "";
+    const url = `${baseUrl}/discover/movie?api_key=${apiKey}&include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc&page=${page}&watch_region=${region}${withProviders}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`TMDB discover failed: ${res.status}`);
     const data = (await res.json()) as { results: TMDBMovie[] };
@@ -73,7 +80,17 @@ async function fetchRandomMovies(): Promise<Movie[]> {
   return withProviders;
 }
 
-export default async function MoviesPage() {
-  const movies = await fetchRandomMovies();
+export default async function MoviesPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const raw = typeof searchParams?.providers === "string"
+    ? searchParams?.providers
+    : Array.isArray(searchParams?.providers)
+    ? searchParams?.providers.join("|")
+    : "";
+  const keys = raw ? (raw.split("|").filter(Boolean) as ProviderKey[]) : [];
+  const movies = await fetchRandomMovies(keys);
   return <MoviesClient initial={movies} />;
 }
