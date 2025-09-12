@@ -1,5 +1,15 @@
 import MoviesClient, { type Movie } from "./MoviesClient";
 
+type TMDBMovie = {
+  id: number;
+  poster_path: string | null;
+  overview: string;
+  title?: string;
+  original_title?: string;
+  release_date?: string;
+  vote_average?: number;
+};
+
 async function fetchRandomMovies(): Promise<Movie[]> {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) throw new Error("TMDB_API_KEY is missing");
@@ -12,15 +22,16 @@ async function fetchRandomMovies(): Promise<Movie[]> {
   const baseUrl = "https://api.themoviedb.org/3";
 
   // Prefer v3 with the API key as query, but to keep the key server-side we use headers.
-  const discover = async (page: number) => {
+  const discover = async (page: number): Promise<TMDBMovie[]> => {
     const url = `${baseUrl}/discover/movie?api_key=${apiKey}&include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc&page=${page}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`TMDB discover failed: ${res.status}`);
-    return (await res.json()).results as any[];
+    const data = (await res.json()) as { results: TMDBMovie[] };
+    return data.results;
   };
 
   const [a, b] = await Promise.all([discover(pageA), discover(pageB)]);
-  const merged = [...a, ...b].filter((m) => m && m.poster_path && m.overview);
+  const merged = [...a, ...b].filter((m): m is TMDBMovie => Boolean(m && m.poster_path && m.overview));
 
   // Shuffle and take up to 10
   for (let i = merged.length - 1; i > 0; i--) {
@@ -44,7 +55,7 @@ async function fetchRandomMovies(): Promise<Movie[]> {
   };
 
   const withProviders = await Promise.all(
-    selected.map(async (m) => {
+    selected.map(async (m: TMDBMovie) => {
       const where = await providersFor(m.id);
       const year = (m.release_date || "").slice(0, 4);
       return {

@@ -169,7 +169,7 @@ function MovieSwipeCard({
     processedTriggerKey.current = key;
     setLeaving(trigger.direction);
     const toLike = trigger.direction === "right";
-    const timer = window.setTimeout(() => {
+    window.setTimeout(() => {
       onDecision(toLike);
     }, 280);
     return () => {};
