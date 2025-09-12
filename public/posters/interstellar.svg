@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1200" fill="url(#g)"/>
+  <text x="50%" y="55%" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700" text-anchor="middle">INTERSTELLAR</text>
+  <text x="50%" y="65%" fill="#e5e7eb" font-family="Arial, Helvetica, sans-serif" font-size="28" text-anchor="middle">2014 • 8.6</text>
+</svg>
+
