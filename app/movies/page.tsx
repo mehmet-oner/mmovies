@@ -23,7 +23,7 @@ async function fetchRandomMovies(): Promise<Movie[]> {
 
   // Prefer v3 with the API key as query, but to keep the key server-side we use headers.
   const discover = async (page: number): Promise<TMDBMovie[]> => {
-    const url = `${baseUrl}/discover/movie?api_key=${apiKey}&include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc&page=${page}`;
+    const url = `${baseUrl}/discover/movie?api_key=${apiKey}&include_adult=false&include_video=false&language=en-US&sort_by=popularity.desc&page=${page}&&watch_region=Netherlands`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`TMDB discover failed: ${res.status}`);
     const data = (await res.json()) as { results: TMDBMovie[] };

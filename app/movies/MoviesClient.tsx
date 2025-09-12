@@ -100,15 +100,8 @@ export default function MoviesClient({ initial }: { initial: Movie[] }) {
 
       <div className="relative h-[520px]">
         {next && (
-          <div className="absolute inset-0 z-0 pointer-events-none scale-[0.98] translate-y-[6px] rounded-2xl overflow-hidden border border-foreground/10 bg-foreground/5" aria-hidden>
-            <Image
-              src={next.poster}
-              alt={next.title}
-              width={600}
-              height={900}
-              className="h-full w-full object-cover opacity-80"
-              priority
-            />
+          <div className="absolute inset-0 z-0 pointer-events-none transform scale-[0.99]" aria-hidden>
+            <MovieCardBase movie={next} subdued priority />
           </div>
         )}
 
@@ -126,19 +119,17 @@ export default function MoviesClient({ initial }: { initial: Movie[] }) {
       <div className="mt-5 grid grid-cols-2 gap-3">
         <button
           onClick={() => setSwipeTrigger((t) => ({ count: t.count + 1, direction: "left", index }))}
-          className="h-12 rounded-full border border-foreground/15 hover:bg-foreground/5 text-sm font-medium"
+          className="h-12 rounded-full border text-sm font-semibold transition-colors border-rose-500/40 text-rose-600 hover:bg-rose-500/10"
         >
-          Dislike
+          nope
         </button>
         <button
           onClick={() => setSwipeTrigger((t) => ({ count: t.count + 1, direction: "right", index }))}
-          className="h-12 rounded-full bg-foreground text-background hover:opacity-90 text-sm font-medium"
+          className="h-12 rounded-full text-sm font-semibold transition-colors bg-emerald-600 text-white hover:bg-emerald-500"
         >
-          Like
+          yeah
         </button>
       </div>
-
-      <p className="mt-3 text-center text-xs text-foreground/60">Swipe on mobile, or use buttons on web.</p>
     </div>
   );
 }
@@ -225,30 +216,73 @@ function MovieSwipeCard({
       onPointerCancel={onPointerUp}
     >
       <div
-        className={[
-          "h-full w-full rounded-2xl overflow-hidden border border-foreground/10 bg-foreground/5",
-          leaving ? "transition-transform duration-300 ease-out" : "transition-transform duration-300 ease-out",
-        ].join(" ")}
+        className="h-full w-full transition-transform duration-300 ease-out"
         style={leaving ? leavingStyle : style}
       >
-        <div className="relative h-[65%] bg-black/5">
-          <Image src={movie.poster} alt={movie.title} width={800} height={1200} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 pointer-events-none">
-            <div className={`absolute top-3 left-3 rounded-md border px-2 py-1 text-xs font-semibold ${showLike ? "opacity-100" : "opacity-0"} transition-opacity bg-emerald-500/10 border-emerald-500/30 text-emerald-600`}>LIKE</div>
-            <div className={`absolute top-3 right-3 rounded-md border px-2 py-1 text-xs font-semibold ${showNope ? "opacity-100" : "opacity-0"} transition-opacity bg-rose-500/10 border-rose-500/30 text-rose-600`}>NOPE</div>
-          </div>
-        </div>
+        <MovieCardBase movie={movie} overlays={{ like: showLike, nope: showNope }} />
+      </div>
+    </div>
+  );
+}
 
-        <div className="h-[35%] p-4 flex flex-col bg-background border-t border-foreground/10">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">{movie.title}</h2>
-              <p className="text-sm text-foreground/60">{movie.year} • {movie.rating.toFixed(1)}</p>
+function MovieCardBase({
+  movie,
+  overlays,
+  subdued,
+  priority,
+}: {
+  movie: Movie;
+  overlays?: { like: boolean; nope: boolean };
+  subdued?: boolean;
+  priority?: boolean;
+}) {
+  const showLike = overlays?.like ?? false;
+  const showNope = overlays?.nope ?? false;
+  return (
+    <div className={["h-full w-full rounded-2xl overflow-hidden border", subdued ? "border-foreground/10 bg-foreground/5" : "border-foreground/10 bg-foreground/5"].join(" ") }>
+      <div className="relative h-[65%] bg-background p-2">
+        <Image src={movie.poster} alt={movie.title} width={800} height={1200} priority={priority} className={"h-full w-full object-contain " + (subdued ? "opacity-90" : "")} />
+        {/* Overlays */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* YEAH (left side/top-left) */}
+          <div
+            className={[
+              "absolute top-4 left-4 select-none",
+              "transform -rotate-6",
+              showLike ? "opacity-100" : "opacity-0",
+              "transition-opacity duration-200",
+            ].join(" ")}
+          >
+            <div className="px-3 py-1 rounded-md border-2 border-emerald-500/80 bg-emerald-600/15 text-emerald-600/95 text-lg font-extrabold tracking-widest shadow-[0_0_0_1px_rgba(16,185,129,0.2)]">
+              yeah
             </div>
-            <span className="text-xs rounded-full border border-foreground/15 px-2 py-1 text-foreground/70">{movie.whereToWatch}</span>
           </div>
-          <p className="text-sm text-foreground/80 mt-3 line-clamp-4">{movie.description}</p>
+          {/* NOPE (top-right) */}
+          <div
+            className={[
+              "absolute top-4 right-4 select-none",
+              "transform rotate-6",
+              showNope ? "opacity-100" : "opacity-0",
+              "transition-opacity duration-200",
+            ].join(" ")}
+          >
+            <div className="px-3 py-1 rounded-md border-2 border-rose-500/80 bg-rose-600/15 text-rose-600/95 text-lg font-extrabold tracking-widest shadow-[0_0_0_1px_rgba(244,63,94,0.2)]">
+              nope
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Bottom info area */}
+      <div className="h-[35%] p-4 flex flex-col justify-between bg-background">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">{movie.title}</h2>
+            <p className="text-sm text-foreground/60">{movie.year} • {movie.rating.toFixed(1)}</p>
+          </div>
+          <span className="text-xs rounded-full border border-foreground/15 px-2 py-1 text-foreground/70">{movie.whereToWatch}</span>
+        </div>
+        <p className="text-sm text-foreground/80 line-clamp-4">{movie.description}</p>
       </div>
     </div>
   );
