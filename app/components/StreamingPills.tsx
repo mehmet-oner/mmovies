@@ -51,7 +51,7 @@ const PROVIDERS: Provider[] = [
   { key: "netflix", label: "Netflix", color: "#E50914", Icon: NetflixIcon },
   { key: "disney", label: "Disney Plus", color: "#113CCF", Icon: DisneyIcon },
   { key: "hbomax", label: "HBO Max", color: "#5B2DFF", Icon: HbomaxIcon },
-  { key: "prime", label: "Amazon Prime Video", color: "#00A8E1", Icon: PrimeIcon },
+  { key: "prime", label: "Prime Video", color: "#00A8E1", Icon: PrimeIcon },
 ];
 
 export default function StreamingPills({
@@ -73,7 +73,7 @@ export default function StreamingPills({
   };
 
   return (
-    <div className="flex flex-nowrap justify-center gap-3 overflow-x-auto px-1">
+    <div className="flex flex-wrap justify-center gap-2 px-1">
       {PROVIDERS.map((p) => {
         const isActive = selected.includes(p.key);
         return (
@@ -83,7 +83,7 @@ export default function StreamingPills({
             onClick={() => toggle(p.key)}
             aria-pressed={isActive}
             className={[
-              "h-10 w-full rounded-full border px-3",
+              "h-10 rounded-full border px-3 whitespace-nowrap",
               "flex items-center gap-2",
               isActive
                 ? "bg-foreground/10 text-foreground border-foreground/25"
