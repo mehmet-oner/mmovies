@@ -25,16 +25,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <header className="sticky top-0 z-50 bg-background/70 backdrop-blur border-b border-foreground/10">
           <div className="mx-auto max-w-3xl h-14 px-4 flex items-center justify-between">
-            <Link href="/" className="font-semibold tracking-tight">mmovies</Link>
-            <Link href="/" className="text-sm text-foreground/70 hover:text-foreground">Home</Link>
+            <Link href="/" className="font-semibold tracking-tight">
+              mmovies
+            </Link>
+            <Link
+              href="/"
+              className="text-sm text-foreground/70 hover:text-foreground"
+            >
+              Home
+            </Link>
           </div>
         </header>
-        <main className="mx-auto max-w-3xl px-4 py-6">
-          {children}
-        </main>
+        <main className="mx-auto max-w-3xl px-4 py-6 h-screen">{children}</main>
       </body>
     </html>
   );
