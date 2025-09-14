@@ -1,5 +1,6 @@
-import MoviesClient, { type Movie } from "./MoviesClient";
+import MoviesClient from "./MoviesClient";
 import { PROVIDER_IDS, type ProviderKey } from "../lib/providers";
+import { Movie } from "./types";
 
 type TMDBMovie = {
   id: number;
@@ -11,7 +12,9 @@ type TMDBMovie = {
   vote_average?: number;
 };
 
-async function fetchRandomMovies(providerKeys: ProviderKey[] = []): Promise<Movie[]> {
+async function fetchRandomMovies(
+  providerKeys: ProviderKey[] = []
+): Promise<Movie[]> {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) throw new Error("TMDB_API_KEY is missing");
 
@@ -19,7 +22,8 @@ async function fetchRandomMovies(providerKeys: ProviderKey[] = []): Promise<Movi
   const providerIds = providerKeys
     .map((k) => PROVIDER_IDS[k])
     .filter((n): n is number => typeof n === "number");
-  const rnd = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const rnd = (min: number, max: number) =>
+    Math.floor(Math.random() * (max - min + 1)) + min;
   const pageA = rnd(1, 200);
   const pageB = rnd(1, 200);
 
@@ -38,7 +42,9 @@ async function fetchRandomMovies(providerKeys: ProviderKey[] = []): Promise<Movi
   };
 
   const [a, b] = await Promise.all([discover(pageA), discover(pageB)]);
-  const merged = [...a, ...b].filter((m): m is TMDBMovie => Boolean(m && m.poster_path && m.overview));
+  const merged = [...a, ...b].filter((m): m is TMDBMovie =>
+    Boolean(m && m.poster_path && m.overview)
+  );
 
   // Shuffle and take up to 10
   for (let i = merged.length - 1; i > 0; i--) {
@@ -50,11 +56,18 @@ async function fetchRandomMovies(providerKeys: ProviderKey[] = []): Promise<Movi
   // Fetch providers per movie (best effort)
   const providersFor = async (id: number) => {
     try {
-      const res = await fetch(`${baseUrl}/movie/${id}/watch/providers?api_key=${apiKey}`, { cache: "no-store" });
+      const res = await fetch(
+        `${baseUrl}/movie/${id}/watch/providers?api_key=${apiKey}`,
+        { cache: "no-store" }
+      );
       if (!res.ok) return "—";
       const json = await res.json();
       const r = json.results?.[region];
-      const pick = r?.flatrate?.[0]?.provider_name || r?.ads?.[0]?.provider_name || r?.buy?.[0]?.provider_name || r?.rent?.[0]?.provider_name;
+      const pick =
+        r?.flatrate?.[0]?.provider_name ||
+        r?.ads?.[0]?.provider_name ||
+        r?.buy?.[0]?.provider_name ||
+        r?.rent?.[0]?.provider_name;
       return pick || "—";
     } catch {
       return "—";
@@ -85,11 +98,12 @@ export default async function MoviesPage({
 }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const raw = typeof searchParams?.providers === "string"
-    ? searchParams?.providers
-    : Array.isArray(searchParams?.providers)
-    ? searchParams?.providers.join("|")
-    : "";
+  const raw =
+    typeof searchParams?.providers === "string"
+      ? searchParams?.providers
+      : Array.isArray(searchParams?.providers)
+      ? searchParams?.providers.join("|")
+      : "";
   const keys = raw ? (raw.split("|").filter(Boolean) as ProviderKey[]) : [];
   const movies = await fetchRandomMovies(keys);
   return <MoviesClient initial={movies} />;
